@@ -1,39 +1,21 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import pandas as pd
+import re 
+from urllib.parse import urlparse
+from tld import get_tld, is_tld
+import whois 
+import datetime
+
 data = pd.read_csv('phishing_site_urls.csv')
 
 
-# In[2]:
-
-
 data.head()
-
-
-# In[3]:
-
 
 rem = {'Label': {'bad': 1, 'good': 0}}
 
 data = data.replace(rem)
 
-
-# In[4]:
-
-
 data.Label.value_counts()
 
-
-# In[5]:
-
-
-import re 
-from urllib.parse import urlparse
-from tld import get_tld, is_tld
 
 def process_tld(url):
     try:
@@ -46,50 +28,12 @@ def process_tld(url):
 
 data['domain'] = data['URL'].apply(lambda i : process_tld(i))
 
-
-# In[6]:
-
-
-data.head()
-
-
-# In[7]:
-
-
-data = data.dropna(axis=0, how='any', inplace=False)
-
-
-# In[8]:
-
-
-data.isnull().sum()
-
-
-# In[9]:
-
-
-
-
-
-# In[10]:
-
-
-
-
-
-# In[11]:
-
-
 # domain length 
 def domainLength(domain):
     length = len(domain)
     return length
 
 data['domainLength'] = data['domain'].apply(lambda i : domainLength(i))
-
-
-# In[12]:
-
 
 #domain list 
 def getDomainlist(domain):
@@ -103,9 +47,6 @@ def getDomainlist(domain):
 data['domainList'] = data['domain'].apply(lambda i : getDomainlist(i))
 
 
-# In[13]:
-
-
 def calculateLength(domains):
     lengthList = []
     for i in domains:        
@@ -113,10 +54,6 @@ def calculateLength(domains):
     return lengthList
 
 data['lengthList'] = data['domainList'].apply(lambda i : calculateLength(i))
-
-
-# In[14]:
-
 
 #node list
 def getNodelist(domain):
@@ -143,11 +80,6 @@ def getNodelist(domain):
 data['nodeList'] = data['domainList'].apply(lambda i : getNodelist(i))
 
 
-# In[15]:
-
-
-from tld import get_tld, is_tld
-import re
 
 def tldList(url):
     tld_list = []
@@ -184,9 +116,7 @@ def tldCount(tldlist):
 data['tldCount'] = data['tldList'].apply(lambda i : tldCount(i))
 
 
-# In[16]:
-
-
+#dot count
 def dotCount(domain):
     domainCount = len(re.findall(r"\.", domain))
     return domainCount
@@ -199,9 +129,6 @@ def domainCount(dot):
     return dot+1
 
 data['domainCount'] = data['dotCount'].apply(lambda i : domainCount(i))
-
-
-# In[17]:
 
 
 #hyphen
@@ -223,9 +150,6 @@ def digits(domain):
 data['digit'] = data['domain'].apply(lambda i : digits(i))
 
 
-# In[18]:
-
-
 #special_chars
 def count_special_chars(domain):
     special_chars = "!@#$%^&*()_+-=[]{};:,.<>/?`~|"
@@ -233,15 +157,6 @@ def count_special_chars(domain):
     return count
 
 data['special_chars'] = data['domain'].apply(lambda i : count_special_chars(i))
-
-
-# In[19]:
-
-
-data.tail()
-
-
-# In[20]:
 
 
 #ip address 
@@ -264,9 +179,6 @@ def have_ip_address(url):
 data['having_IP'] = data['domain'].apply(lambda i : have_ip_address(i))
 
 
-# In[21]:
-
-
 #maxRatio
 def maxRatio(dlength, dlist, dot):    
     dlength = dlength - dot
@@ -278,21 +190,10 @@ def maxRatio(dlength, dlist, dot):
 data.insert(4, 'maxRatio', 0) 
 # keyerror 방지. 미리 maxRatio column 생성해두기
 
-
-# In[22]:
-
-
 for i in range(len(data)):
     data.iloc[i]['maxRatio'] = maxRatio(data.iloc[i]['domainLength'], max(data.iloc[i]['lengthList']), data.iloc[i]['dotCount'])
 
-
-# In[23]:
-
-
-import whois 
-import datetime
-
-
+# domain age
 def age_of_domain(url):
     try:
         print(data.index[data['domain'] == url])
@@ -306,21 +207,5 @@ def age_of_domain(url):
 
 data['age_of_domain'] = data['domain'].apply(lambda i : age_of_domain(i))
 
-
-# In[24]:
-
-
-data.head()
-
-
-# In[25]:
-
-
 data.to_csv('preprocess_phishing_site_urls.csv', index=False)
-
-
-# In[ ]:
-
-
-
 
